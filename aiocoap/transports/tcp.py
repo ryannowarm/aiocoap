@@ -428,6 +428,7 @@ class TCPClient(_TCPPooling, interfaces.TokenInterface):
             return self._pool[(host, port)]
 
         try:
+            print("RAN -- creating connection: %s:%s" % (host, port))
             _, protocol = await self.loop.create_connection(
                     lambda: TcpConnection(self, self.log, self.loop,
                         hostinfo=util.hostportjoin(host, port)),

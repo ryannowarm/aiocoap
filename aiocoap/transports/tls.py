@@ -36,6 +36,9 @@ class TLSServer(_TLSMixIn, TCPServer):
 
 class TLSClient(_TLSMixIn, TCPClient):
     def _ssl_context_factory(self):
+        print("RAN -- creating ssl context")
         c = ssl.create_default_context()
+        c.load_verify_locations('bootstrap_ca.pem')
+        c.load_cert_chain('device.cert', 'device.key')
         c.set_alpn_protocols(["coap"])
         return c
