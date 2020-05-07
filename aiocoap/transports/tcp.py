@@ -159,6 +159,7 @@ class TcpConnection(asyncio.Protocol, interfaces.EndpointAddress):
 
     def _send_message(self, msg: Message):
         self.log.debug("Sending message: %r", msg)
+        self.log.debug("Sending message opt: %r", msg.opt)
         self._transport.write(_serialize(msg))
 
     def abort(self, errormessage=None, bad_csm_option=None):
@@ -492,3 +493,39 @@ class TCPClient(_TCPPooling, interfaces.TokenInterface):
             # FIXME: it would be nicer to release them
             c.abort("Server shutdown")
         del self._tokenmanager
+
+    async def recognize_remote(self, remote):
+        return isinstance(remote, TcpConnection) and remote._ctx is self
+
+    async def determine_remote(self, request):
+        if request.requested_scheme not in ('coap', None):
+            return None
+
+        ## @TODO this is very rudimentary; happy-eyeballs or
+        # similar could be employed.
+
+        if request.unresolved_remote is not None:
+            host, port = hostportsplit(request.unresolved_remote)
+            port = port or COAP_PORT
+        elif request.opt.uri_host:
+            host = request.opt.uri_host
+            port = request.opt.uri_port or COAP_PORT
+        else:
+            raise ValueError("No location found to send message to (neither in .opt.uri_host nor in .remote)")
+
+        try:
+            own_sock = self.transport.get_extra_info('socket')
+            addrinfo = await self.loop.getaddrinfo(
+                host,
+                port,
+                family=own_sock.family,
+                type=0, # Not setting the sock's proto as that fails up to
+                        # Python 3.6; setting that would make debugging around
+                        # here less confusing but otherwise has no effect
+                        # (unless maybe very exotic protocols show up).
+                proto=own_sock.proto,
+                flags=socket.AI_V4MAPPED,
+                )
+        except socket.gaierror:
+            raise error.ResolutionError("No address information found for requests to %r" % host)
+        return TcpConnection(addrinfo[0][-1], self)

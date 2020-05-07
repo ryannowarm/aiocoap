@@ -193,7 +193,7 @@ class Context(interfaces.RequestProvider):
                     lambda tman: TCPClient.create_client_transport(tman, self.log, loop))
             elif transportname == 'tlsclient':
                 from .transports.tls import TLSClient
-                await self._append_tokenmanaged_transport(
+                await self._append_tokenmanaged_messagemanaged_transport(
                     lambda tman: TLSClient.create_client_transport(tman, self.log, loop))
             elif transportname == 'oscore':
                 from .transports.oscore import TransportOSCORE
@@ -301,7 +301,9 @@ class Context(interfaces.RequestProvider):
             return BlockwiseRequest(self, request_message)
 
         plumbing_request = PlumbingRequest(request_message)
+        print("RAN -- plumbing request: %s" % dir(plumbing_request.request))
         result = Request(plumbing_request, self.loop, self.log)
+        #print("RAN -- result: %r" % dir(result))
 
         async def send():
             try:

@@ -366,6 +366,7 @@ class MessageManager(interfaces.TokenInterface, interfaces.MessageManager):
                     self.log.debug("Turning to-be-sent message into an empty ACK due to no_response option.")
                 else:
                     message.mtype = ACK
+                    print("RAN -- setting mid to %r" % mid)
                     message.mid = mid
             else:
                 if no_response:
@@ -395,6 +396,7 @@ class MessageManager(interfaces.TokenInterface, interfaces.MessageManager):
             raise ValueError("Refusing to send CON message to multicast address")
 
         if message.mid is None:
+            print("RAN -- setting mid")
             message.mid = self._next_message_id()
 
         if message.mtype == CON and message.remote in self._backlogs:
@@ -445,6 +447,7 @@ class MessageManager(interfaces.TokenInterface, interfaces.MessageManager):
                 payload=b"",
                 )
         ack.remote = remote.as_response_address()
+        print("RAN -- setting mid to %r" % mid)
         ack.mid = mid
         # not going via send_message because that would strip the mid, and we
         # already know that it can go straight to the wire

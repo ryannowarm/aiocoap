@@ -134,6 +134,7 @@ class Message(object):
             self.mtype = None
         else:
             self.mtype = Type(mtype)
+        print("RAN -- setting mid to %r" % mid)
         self.mid = mid
         if code is None:
             # as above with mtype
@@ -310,6 +311,7 @@ class Message(object):
             self.payload += next_block.payload
             self.opt.block1 = block1
             self.token = next_block.token
+            print("RAN -- setting mid to %r" % next_block.mid)
             self.mid = next_block.mid
         else:
             # possible extension point: allow messages with "gaps"; then
@@ -338,6 +340,7 @@ class Message(object):
         self.payload += next_block.payload
         self.opt.block2 = block2
         self.token = next_block.token
+        print("RAN -- setting mid to %r" % next_block.mid)
         self.mid = next_block.mid
 
     def _generate_next_block2_request(self, response):
